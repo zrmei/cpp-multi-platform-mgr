@@ -1,0 +1,85 @@
+apply plugin: "net.freudasoft.gradle-cmake-plugin"
+
+cmake {
+    Properties localProperties = getCombinedProperties(["local", "linux"])
+
+    if (localProperties.containsKey("toolchain.path")) {
+
+        options.CMAKE_TOOLCHAIN_FILE = localProperties.getProperty("toolchain.path", "")
+
+    } else if (localProperties.containsKey("gcc.dir")) {
+
+        def gccDir = localProperties.getProperty("gcc.dir", "/usr")
+        def gccPrefix = localProperties.getProperty("gcc.prefix", "")
+        def gccSuffix = localProperties.getProperty("gcc.suffix", "")
+
+        options.CMAKE_C_COMPILER = "${gccDir}/bin/${gccPrefix}gcc${gccSuffix}"
+        options.CMAKE_CXX_COMPILER = "${gccDir}/bin/${gccPrefix}g++${gccSuffix}"
+    }
+
+    if (localProperties.containsKey("toolchain.platform")) {
+        options.CUSTOM_PLATFORM = localProperties.getProperty("toolchain.platform", "unknown")
+    }
+
+    def cmakeDir = localProperties.getProperty("cmake.dir", "/usr")
+    executable = "${cmakeDir}/bin/cmake"
+
+    println("use cmake executable: $cmakeDir/bin/cmake")
+
+    sourceFolder = projectDir
+
+    options.CMAKE_SYSTEM_NAME = "Linux"
+    options.CMAKE_BUILD_TYPE = "MinSizeRel"
+
+    for (Enumeration en = localProperties.propertyNames(); en.hasMoreElements();) {
+        String key = en.nextElement();
+        if(key.startsWith("def.")) {
+            options[key.substring(4)] = localProperties.getProperty(key);
+        }
+    }
+
+    buildConfig = options.CMAKE_BUILD_TYPE
+    buildClean = true
+    jobCount = "auto"
+}
+
+String defineVariantTask(String name, String platform_) {
+    tasks.register("configure-${name}-${platform_}", net.freudasoft.CMakeConfigureTask) {
+        group = "$name"
+
+        configureFromProject()
+
+        if(options.getAt("CUSTOM_PLATFORM").getOrElse("") == "") {
+            options.PLATFORM = platform_
+        }
+
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
+    }
+
+    tasks.register("build-${name}-${platform_}", net.freudasoft.CMakeBuildTask) {
+        group = "$name"
+
+        configureFromProject()
+
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
+    }
+
+    tasks.getByName("build-${name}-${platform_}").dependsOn(tasks.getByName("configure-${name}-${platform_}"))
+
+    return "build-${name}-${platform_}"
+}
+
+def build_targets = [
+    defineVariantTask("linux", "x86"),
+    defineVariantTask("linux", "x64")
+]
+
+/* 交叉编译 */
+defineVariantTask("linux", "custom")
+
+tasks.register("build-all") {
+    group = "linux"
+    description = "build all task defined in this group."
+
+    dependsOn build_targets
+}

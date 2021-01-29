@@ -1,0 +1,9 @@
+include ":android", ":iOS:core", ":iOS:sdk", ":linux", ":win32", ":win32-mingw", ":format"
+
+project(":android").projectDir = file('targets/android')
+project(":iOS:core").projectDir = file('targets/iOS')
+project(":iOS:sdk").projectDir = file('targets/iOS/projects/IFlyAIUI')
+project(":linux").projectDir = file('targets/linux')
+project(":win32").projectDir = file('targets/windows')
+project(":win32-mingw").projectDir = file('targets/windows-mingw')
+project(":format").projectDir = file('tools/format')

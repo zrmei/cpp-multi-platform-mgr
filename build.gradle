@@ -1,0 +1,37 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {url 'file:gradle/repositories/gradle-cmake-plugin/'}
+    }
+    dependencies {
+        classpath "net.freudasoft:gradle-cmake-plugin:19.199.3"
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+
+Properties getCombinedProperties(List<String> names)
+{
+    Properties localProperties = new Properties()
+    Properties p = new Properties()
+
+    for (String s : names) {
+        def cfg_file = new File(project.rootDir, s + ".properties");
+
+        if(!cfg_file.exists()) {
+            continue
+        }
+       
+        p.load(new FileInputStream(cfg_file))
+
+        for(String key : p.stringPropertyNames()) {
+            localProperties.setProperty(key, p.getProperty(key, ""))
+        }
+    }
+
+    return localProperties
+}

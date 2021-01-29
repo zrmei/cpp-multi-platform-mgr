@@ -1,0 +1,37 @@
+def isWindows() {
+    return org.gradle.internal.os.OperatingSystem.current().isWindows()
+}
+
+tasks.register("format-code") {
+    group = "format"
+    description = "auto format codes under src"
+
+    doLast {       
+        if (isWindows()) {
+            try {
+                exec {
+                    ExecSpec execSpec ->
+                        executable 'cmd.exe'
+                        args "/c", ".\\format.bat"
+                }
+
+                println "format all success"
+            } catch (Exception e) {
+                println "Please call zrmei"
+            }
+        } else {
+            try {
+                exec {
+                    ExecSpec execSpec ->
+                        executable 'bash'
+                        args "./format.sh"
+                }
+
+                println "format all success"
+            } catch (Exception e) {
+                println "Please call zrmei"
+            }
+         }
+
+    }
+}

@@ -1,0 +1,62 @@
+apply plugin: "net.freudasoft.gradle-cmake-plugin"
+
+cmake {
+    Properties localProperties = getCombinedProperties(["local", "win"])
+
+    def cmakeDir = localProperties.getProperty("cmake.dir", "C:/Program Files/CMake")
+    executable = "$cmakeDir/bin/cmake"
+
+    println("use cmake executable: $cmakeDir/bin/cmake")
+
+    sourceFolder = projectDir
+
+    options.CMAKE_SYSTEM_NAME = "Windows"
+    options.CMAKE_BUILD_TYPE = "Release"
+
+    for (Enumeration en = localProperties.propertyNames(); en.hasMoreElements();) {
+        String key = en.nextElement();
+        if(key.startsWith("def.")) {
+            options[key.substring(4)] = localProperties.getProperty(key);
+        }
+    }
+
+    buildConfig = options.CMAKE_BUILD_TYPE
+    buildClean = true
+}
+
+String defineVariantTask(String name, String platform_, String generator_) {
+    tasks.register("configure-${name}-${platform_}", net.freudasoft.CMakeConfigureTask) {
+        group = "windows"
+
+        configureFromProject()
+
+        generator = generator_
+        options.PLATFORM = platform_
+
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
+    }
+
+    tasks.register("build-${name}-${platform_}", net.freudasoft.CMakeBuildTask) {
+        group = "windows"
+
+        configureFromProject()
+
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
+    }
+
+    tasks.getByName("build-${name}-${platform_}").dependsOn(tasks.getByName("configure-${name}-${platform_}"))
+
+    return "build-${name}-${platform_}";
+}
+
+def build_targets_14 = [
+    defineVariantTask("msvc-14", "x86", "Visual Studio 14 2015"),
+    defineVariantTask("msvc-14", "x64", "Visual Studio 14 2015 Win64")
+]
+
+tasks.register("build-14-all") {
+    group = "windows"
+    description = "build all task defined in this group."
+
+    dependsOn build_targets_14
+}

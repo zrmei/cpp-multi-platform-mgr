@@ -1,0 +1,91 @@
+apply plugin: "net.freudasoft.gradle-cmake-plugin"
+
+cmake {
+    Properties localProperties = getCombinedProperties(["local", "android"])
+
+    def cmakeDir = localProperties.getProperty("cmake.dir", "/usr")
+    executable = "$cmakeDir/bin/cmake"
+    println("use cmake executable: $cmakeDir/bin/cmake")
+
+    def ndkDir = localProperties.getProperty("ndk.dir", "")
+
+    if(!ndkDir.isEmpty()) {
+        println("ndk dir: ${ndkDir}")
+        sourceFolder = projectDir
+
+        def ndkApiLevel = localProperties.getProperty("ndk.api.level", "21")
+        def ndkToolchain = localProperties.getProperty("ndk.toolchain", "clang")
+
+        options.CMAKE_BUILD_TYPE = "MinSizeRel"
+        options.CMAKE_SYSTEM_NAME = "Android"
+        options.CMAKE_SYSROOT= "${ndkDir}/platforms/android-${ndkApiLevel}/arch-arm"
+        options.CMAKE_TOOLCHAIN_FILE="${ndkDir}/build/cmake/android.toolchain.cmake"
+        options.ANDROID_NDK="${ndkDir}"
+        options.ANDROID_TOOLCHAIN = "${ndkToolchain}"
+        options.ANDROID_NATIVE_API_LEVEL = "${ndkApiLevel}"
+        options.ANDROID_FORCE_ARM_BUILD = "OFF"
+        options.ANDROID_STL = ndkToolchain == "gcc" ? "gnustl_static" : "c++_static"
+    }
+
+    for (Enumeration en = localProperties.propertyNames(); en.hasMoreElements();) {
+        String key = en.nextElement();
+        if(key.startsWith("def.")) {
+            options[key.substring(4)] = localProperties.getProperty(key);
+        }
+    }
+
+    buildConfig = options.CMAKE_BUILD_TYPE
+    buildClean = true
+    jobCount = "auto"
+}
+
+String defineVariantTask(String name, String platform_) {
+    tasks.register("configure-${name}-${platform_}", net.freudasoft.CMakeConfigureTask) {
+       group = "$name"
+
+       configureFromProject()
+
+       generator = "Unix Makefiles"
+
+       options.ANDROID_ABI = platform_
+       options.PLATFORM = platform_
+
+       workingFolder = file("$buildDir/cmake-${name}-${platform_}")
+    }
+
+    tasks.register("build-${name}-${platform_}", net.freudasoft.CMakeBuildTask) {
+        group = "$name"
+
+        configureFromProject()
+
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
+    }
+
+    tasks.getByName("build-${name}-${platform_}").dependsOn(tasks.getByName("configure-${name}-${platform_}"))
+
+    return "build-${name}-${platform_}";
+}
+
+def build_default_targets = [
+    defineVariantTask("android", "armeabi-v7a"),
+    defineVariantTask("android", "arm64-v8a")
+]
+
+tasks.register("build-android-all") {
+    group = "android"
+    description = "build all task defined in this group."
+
+    dependsOn build_default_targets
+}
+
+def build_targets_extras = [
+    defineVariantTask("android", "x86"),
+    defineVariantTask("android", "x86_64")
+]
+
+tasks.register("build-android-all-extras") {
+    group = "android"
+    description = "build all task defined in this group."
+
+    dependsOn build_targets_extras
+}

@@ -4,7 +4,6 @@ cmake_install.cmake
 *.out
 *.log
 *.pcm
-*.txt
 Makefile
 CMakeFiles
 .vs

@@ -13,8 +13,8 @@ cmake {
         println("ndk dir: ${ndkDir}")
         sourceFolder = projectDir
 
-        def ndkApiLevel = localProperties.getProperty("ndk.api.level", "21")
-        def ndkToolchain = localProperties.getProperty("ndk.toolchain", "clang")
+        def ndkApiLevel = localProperties.getProperty("ndk.api.level", "19")
+        def ndkToolchain = localProperties.getProperty("ndk.toolchain", "gcc")
 
         options.CMAKE_BUILD_TYPE = "MinSizeRel"
         options.CMAKE_SYSTEM_NAME = "Android"
@@ -45,7 +45,12 @@ String defineVariantTask(String name, String platform_) {
 
        configureFromProject()
 
-       generator = "Unix Makefiles"
+       if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+           options.CMAKE_MAKE_PROGRAM = "${rootProject.projectDir}/tools/ninja/ninja.exe"
+       } else {
+           options.CMAKE_MAKE_PROGRAM = "${rootProject.projectDir}/tools/ninja/ninja"
+       }
+       generator = "Ninja"
 
        options.ANDROID_ABI = platform_
        options.PLATFORM = platform_

@@ -26,4 +26,4 @@ if (MSVC)
     endforeach ()
 endif ()
 
-ADD_SUBDIRECTORY(../../src bin)
+ADD_SUBDIRECTORY(../../projects projects)

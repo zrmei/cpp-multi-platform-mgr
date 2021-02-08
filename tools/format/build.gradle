@@ -6,13 +6,17 @@ tasks.register("format-code") {
     group = "format"
     description = "auto format codes under src"
 
+    Properties localProperties = getCombinedProperties(["local", "format"])
+
+    def project_dirname = localProperties.getProperty("def.PROJECT_DIRNAME", ".")
+
     doLast {       
         if (isWindows()) {
             try {
                 exec {
                     ExecSpec execSpec ->
                         executable 'cmd.exe'
-                        args "/c", ".\\format.bat"
+                        args "/c", ".\\format.bat", project_dirname
                 }
 
                 println "format all success"
@@ -24,7 +28,7 @@ tasks.register("format-code") {
                 exec {
                     ExecSpec execSpec ->
                         executable 'bash'
-                        args "./format.sh"
+                        args "./format.sh", project_dirname
                 }
 
                 println "format all success"

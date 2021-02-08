@@ -4,8 +4,14 @@ SET(CMAKE_COLOR_MAKEFILE ON)
 CMAKE_POLICY(SET CMP0048 NEW)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# 工程开始
+SET(CMAKE_SKIP_RPATH FALSE)
+SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+SET(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/libs")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
+# 引入自定义的函数文件
+include(cmake/env_detect.cmake)
 
 ########################################################################################################################
 # 设置输出路径
@@ -28,9 +34,6 @@ elseif (CMAKE_SYSTEM_NAME MATCHES "Android")
     SET(TOOLSET_VERSION ${ANDROID_NATIVE_API_LEVEL}_${CMAKE_CXX_COMPILER_ID}_${CMAKE_CXX_COMPILER_VERSION})
 endif ()
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/thirdparty)
-target_link_directories(${PROJECT_NAME} PRIVATE ${LINK_LIB_DIR})
-
 IF (NOT MSVC)
     SET(OUTPUT_DIR_NAME ${CMAKE_BUILD_TYPE})
 ENDIF (NOT MSVC)
@@ -52,9 +55,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
 
 MESSAGE(STATUS "Output Dir: " ${LIBRARY_OUTPUT_PATH})
 ########################################################################################################################
-
-# 引入自定义的函数文件
-include(cmake/env_detect.cmake)
 
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     MESSAGE(STATUS "build on Windows")
@@ -87,15 +87,14 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_MINSIZEREL}
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 
-# 去除cmake编译时候带的环境，并重设为库所在的当前目录
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    SET(CMAKE_SKIP_RPATH TRUE)
-    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-Wl,-rpath,\$ORIGIN:\$ORIGIN/libs")
-    set_target_properties(${PROJECT_NAME}_demo PROPERTIES LINK_FLAGS "-Wl,-rpath,\$ORIGIN:\$ORIGIN/libs")
-endif ()
-
 string(TOUPPER CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE} CURRENT_C_BUILD_TYPE)
 MESSAGE(STATUS "Build c defines: ${${CURRENT_C_BUILD_TYPE}}")
 
 string(TOUPPER CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE} CURRENT_CXX_BUILD_TYPE)
 MESSAGE(STATUS "Build cxx defines: ${${CURRENT_CXX_BUILD_TYPE}}")
+
+if(DEFINED PROJECT_DIRNAME)
+    add_subdirectory(projects/${PROJECT_DIRNAME})
+else()
+    message(FATAL_ERROR "PLease setup PROJECT_DIRNAME in local.properties")
+endif()

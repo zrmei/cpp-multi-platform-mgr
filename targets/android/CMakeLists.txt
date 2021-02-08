@@ -10,8 +10,6 @@ endif()
 
 SET(AIUI_LIBRARY_TYPE DEFAULT)
 
-OPTION(GENERATE_LIB_OR_BIN "生成动态库或可执行文件，ON为LIB" ON)
-
-ADD_SUBDIRECTORY(../../src bin)
+ADD_SUBDIRECTORY(../../projects projects)
 
 

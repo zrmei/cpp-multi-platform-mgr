@@ -1,0 +1,6 @@
+*
+!/cmake
+!/.clang-format
+!/.gitignore
+!/CMakeLists.txt
+!/projects

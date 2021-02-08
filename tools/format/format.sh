@@ -4,13 +4,9 @@ SCRIPT_PATH="$(readlink -f $(dirname $0))"
 
 export PATH="$SCRIPT_PATH/bin:$PATH"
 
-cd "${SCRIPT_PATH}/../../src/"
+cd "${SCRIPT_PATH}/../../projects/"
 
-DestDir=$1
-
-if [[ "$1" == "" ]]; then
-    DestDir="${SCRIPT_PATH}/../../src/MiddleWare/"
-fi
+DestDir="${SCRIPT_PATH}/../../projects/projects/$1"
 
 echo "$DestDir"
 

@@ -51,4 +51,4 @@ if (CHECK_OUTPUT_DEF)
     add_link_options(-Wl,--output-def,aicae_${CMAKE_BUILD_TYPE}.def)
 endif (CHECK_OUTPUT_DEF)
 
-ADD_SUBDIRECTORY(../../src bin)
+ADD_SUBDIRECTORY(../../projects projects)

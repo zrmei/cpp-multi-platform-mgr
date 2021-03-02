@@ -13,8 +13,8 @@ cmake {
         println("ndk dir: ${ndkDir}")
         sourceFolder = projectDir
 
-        def ndkApiLevel = localProperties.getProperty("ndk.api.level", "19")
-        def ndkToolchain = localProperties.getProperty("ndk.toolchain", "gcc")
+        def ndkApiLevel = localProperties.getProperty("ndk.api.level", "21")
+        def ndkToolchain = localProperties.getProperty("ndk.toolchain", "clang")
 
         options.CMAKE_BUILD_TYPE = "MinSizeRel"
         options.CMAKE_SYSTEM_NAME = "Android"

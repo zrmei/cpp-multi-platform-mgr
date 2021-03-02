@@ -77,7 +77,7 @@ def build_targets = [
 /* 交叉编译 */
 defineVariantTask("linux", "custom")
 
-tasks.register("build-all") {
+tasks.register("build-linux-all") {
     group = "linux"
     description = "build all task defined in this group."
 

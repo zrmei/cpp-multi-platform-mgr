@@ -1,0 +1,40 @@
+stages:
+  - build
+  
+msvc:
+  stage: build
+  tags:
+    - msvc
+  script:
+    - .\gradlew.bat build-14-all
+  artifacts: 
+    paths:
+      - output/Windows
+  only: 
+    - master
+
+linux:
+  stage: build
+  tags:
+    - linux
+  script:
+    - chmod +x gradlew
+    - ./gradlew build-linux-all
+  artifacts: 
+    paths:
+      - output/Linux
+  only: 
+    - master
+
+android:
+  stage: build
+  tags:
+    - android
+  script:
+    - chmod +x gradlew
+    - ./gradlew build-android-all
+  artifacts: 
+    paths:
+      - output/Android
+  only: 
+    - master

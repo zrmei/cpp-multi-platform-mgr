@@ -1,9 +1,5 @@
 apply plugin: "net.freudasoft.gradle-cmake-plugin"
 
-def isWindows() {
-    return org.gradle.internal.os.OperatingSystem.current().isWindows()
-}
-
 cmake {
     Properties localProperties = getCombinedProperties(["local", "mingw"])
 

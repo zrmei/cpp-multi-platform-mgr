@@ -14,16 +14,24 @@ allprojects {
     }
 }
 
+boolean isWindows() {
+    return org.gradle.internal.os.OperatingSystem.current().isWindows()
+}
+
 Properties getCombinedProperties(List<String> names)
 {
     Properties localProperties = new Properties()
     Properties p = new Properties()
 
     for (String s : names) {
-        def cfg_file = new File(project.rootDir, s + ".properties");
+        def cfg_file = new File((isWindows() ? "C:/configure-" : "/opt/configure-") + rootProject.name, s + ".properties");
 
         if(!cfg_file.exists()) {
-            continue
+            cfg_file = new File(project.rootDir, s + ".properties");
+
+            if(!cfg_file.exists()) {
+                continue
+            }
         }
        
         p.load(new FileInputStream(cfg_file))

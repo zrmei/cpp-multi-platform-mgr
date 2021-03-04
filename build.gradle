@@ -23,11 +23,16 @@ Properties getCombinedProperties(List<String> names)
     Properties localProperties = new Properties()
     Properties p = new Properties()
 
+    def systemDir = (isWindows() ? "C:/" : "/opt/") + rootProject.name + "-configure";
+    if (project.hasProperty("propertiesDir")) {
+        systemDir = project.propertiesDir
+    }
+
     for (String s : names) {
-        def cfg_file = new File((isWindows() ? "C:/configure-" : "/opt/configure-") + rootProject.name, s + ".properties");
+        def cfg_file = new File(project.rootDir, s + ".properties");
 
         if(!cfg_file.exists()) {
-            cfg_file = new File(project.rootDir, s + ".properties");
+            cfg_file = new File(systemDir, s + ".properties");
 
             if(!cfg_file.exists()) {
                 continue

@@ -15,6 +15,7 @@ cmake {
 
         def ndkApiLevel = localProperties.getProperty("ndk.api.level", "21")
         def ndkToolchain = localProperties.getProperty("ndk.toolchain", "clang")
+        def ndkstl = localProperties.getProperty("ndk.stl", "gnustl_static")
 
         options.CMAKE_BUILD_TYPE = "MinSizeRel"
         options.CMAKE_SYSTEM_NAME = "Android"
@@ -24,7 +25,7 @@ cmake {
         options.ANDROID_TOOLCHAIN = "${ndkToolchain}"
         options.ANDROID_NATIVE_API_LEVEL = "${ndkApiLevel}"
         options.ANDROID_FORCE_ARM_BUILD = "OFF"
-        options.ANDROID_STL = ndkToolchain == "gcc" ? "gnustl_static" : "c++_static"
+        options.ANDROID_STL = "${ndkstl}"
     }
 
     for (Enumeration en = localProperties.propertyNames(); en.hasMoreElements();) {

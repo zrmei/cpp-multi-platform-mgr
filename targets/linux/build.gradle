@@ -41,6 +41,10 @@ cmake {
     buildConfig = options.CMAKE_BUILD_TYPE
     buildClean = true
     jobCount = "auto"
+
+    if (localProperties.containsKey("wsl.distribution")) {
+        distribution = localProperties.getProperty("wsl.distribution", "Ubuntu-16.04")
+    }
 }
 
 String defineVariantTask(String name, String platform_) {

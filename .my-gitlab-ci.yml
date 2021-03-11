@@ -1,13 +1,19 @@
 stages:
   - build
-  
+
+variables:
+  default_project: "test"
+
 msvc:
   stage: build
   tags:
     - msvc
   script:
+    - Set-Content -Path local.properties -Value 'def.PROJECT_DIRNAME = ${default_project}'
     - .\gradlew.bat build-14-all
-  artifacts: 
+  artifacts:
+    name: "${default_project}-${env:CI_JOB_NAME}-${env:CI_COMMIT_SHORT_SHA}"
+    expire_in: 1 month
     paths:
       - output/Windows
   only: 
@@ -18,9 +24,12 @@ linux:
   tags:
     - linux
   script:
+    - echo def.PROJECT_DIRNAME = ${default_project} > local.properties
     - chmod +x gradlew
     - ./gradlew build-linux-all
-  artifacts: 
+  artifacts:
+    name: "${default_project}-${env:CI_JOB_NAME}-${env:CI_COMMIT_SHORT_SHA}"
+    expire_in: 1 month
     paths:
       - output/Linux
   only: 
@@ -31,9 +40,12 @@ android:
   tags:
     - android
   script:
+    - echo def.PROJECT_DIRNAME = ${default_project} > local.properties
     - chmod +x gradlew
     - ./gradlew build-android-all
-  artifacts: 
+  artifacts:
+    name: "${default_project}-${env:CI_JOB_NAME}-${env:CI_COMMIT_SHORT_SHA}"
+    expire_in: 1 month
     paths:
       - output/Android
   only: 

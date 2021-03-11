@@ -38,6 +38,7 @@ test-android:
     - android
   script:
     - echo def.PROJECT_DIRNAME = test > local.properties
+    - chmod +x tools/ninja/ninja
     - chmod +x gradlew
     - ./gradlew build-android-all
   artifacts:

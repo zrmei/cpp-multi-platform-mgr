@@ -2,17 +2,17 @@ stages:
   - build
 
 variables:
-  default_project: "test"
+  DEFAULT_PROJECT: "test"
 
 msvc:
   stage: build
   tags:
     - msvc
   script:
-    - Set-Content -Path local.properties -Value 'def.PROJECT_DIRNAME = ${default_project}'
+    - Set-Content -Path local.properties -Value 'def.PROJECT_DIRNAME = ${DEFAULT_PROJECT}'
     - .\gradlew.bat build-14-all
   artifacts:
-    name: "${default_project}-${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
+    name: "${DEFAULT_PROJECT}-${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
     expire_in: 1 month
     paths:
       - output/Windows
@@ -24,11 +24,11 @@ linux:
   tags:
     - linux
   script:
-    - echo def.PROJECT_DIRNAME = ${default_project} > local.properties
+    - echo def.PROJECT_DIRNAME = ${DEFAULT_PROJECT} > local.properties
     - chmod +x gradlew
     - ./gradlew build-linux-all
   artifacts:
-    name: "${default_project}-${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
+    name: "${DEFAULT_PROJECT}-${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
     expire_in: 1 month
     paths:
       - output/Linux
@@ -40,11 +40,11 @@ android:
   tags:
     - android
   script:
-    - echo def.PROJECT_DIRNAME = ${default_project} > local.properties
+    - echo def.PROJECT_DIRNAME = ${DEFAULT_PROJECT} > local.properties
     - chmod +x gradlew
     - ./gradlew build-android-all
   artifacts:
-    name: "${default_project}-${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
+    name: "${DEFAULT_PROJECT}-${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
     expire_in: 1 month
     paths:
       - output/Android

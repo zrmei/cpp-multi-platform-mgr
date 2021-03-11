@@ -12,7 +12,7 @@ msvc:
     - Set-Content -Path local.properties -Value 'def.PROJECT_DIRNAME = ${default_project}'
     - .\gradlew.bat build-14-all
   artifacts:
-    name: "${default_project}-${env:CI_JOB_NAME}-${env:CI_COMMIT_SHORT_SHA}"
+    name: "${default_project}-${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
     expire_in: 1 month
     paths:
       - output/Windows
@@ -28,7 +28,7 @@ linux:
     - chmod +x gradlew
     - ./gradlew build-linux-all
   artifacts:
-    name: "${default_project}-${env:CI_JOB_NAME}-${env:CI_COMMIT_SHORT_SHA}"
+    name: "${default_project}-${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
     expire_in: 1 month
     paths:
       - output/Linux
@@ -44,7 +44,7 @@ android:
     - chmod +x gradlew
     - ./gradlew build-android-all
   artifacts:
-    name: "${default_project}-${env:CI_JOB_NAME}-${env:CI_COMMIT_SHORT_SHA}"
+    name: "${default_project}-${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
     expire_in: 1 month
     paths:
       - output/Android

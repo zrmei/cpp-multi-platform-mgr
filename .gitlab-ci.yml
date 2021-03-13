@@ -1,29 +1,22 @@
 stages:
   - build
 
-test-msvc:
+.defaults-win: &defaults-win
   stage: build
   tags:
     - msvc
-  script:
-    - Set-Content -Path local.properties -Value "def.PROJECT_DIRNAME = test"
-    - .\gradlew.bat build-14-all
   artifacts:
-    name: "${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
+    name: "${env:CI_JOB_NAME}-${env:CI_COMMIT_SHORT_SHA}"
     expire_in: 1 month
     paths:
       - output/Windows
   only: 
     - master
 
-test-linux:
+.defaults-linux: &defaults-linux
   stage: build
   tags:
     - linux
-  script:
-    - echo def.PROJECT_DIRNAME = test > local.properties
-    - chmod +x gradlew
-    - ./gradlew build-linux-all
   artifacts:
     name: "${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
     expire_in: 1 month
@@ -32,15 +25,10 @@ test-linux:
   only: 
     - master
 
-test-android:
+.defaults-android: &defaults-android
   stage: build
   tags:
     - android
-  script:
-    - echo def.PROJECT_DIRNAME = test > local.properties
-    - chmod +x tools/ninja/ninja
-    - chmod +x gradlew
-    - ./gradlew build-android-all
   artifacts:
     name: "${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}"
     expire_in: 1 month
@@ -48,3 +36,25 @@ test-android:
       - output/Android
   only: 
     - master
+
+
+test-msvc:
+  <<: *defaults-win
+  script:
+    - Set-Content -Path local.properties -Value "def.PROJECT_DIRNAME = test"
+    - .\gradlew.bat build-14-all
+
+test-linux:
+  <<: *defaults-linux
+  script:
+    - echo def.PROJECT_DIRNAME = test > local.properties
+    - chmod +x gradlew
+    - ./gradlew build-linux-all
+
+test-android:
+  <<: *defaults-android
+  script:
+    - echo def.PROJECT_DIRNAME = test > local.properties
+    - chmod +x tools/ninja/ninja
+    - chmod +x gradlew
+    - ./gradlew build-android-all

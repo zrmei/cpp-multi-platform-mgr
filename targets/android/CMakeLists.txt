@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
-PROJECT(aicae-sdk)
+PROJECT(cpp-multi-platform-mgr)
 
 SET(CMAKE_SYSTEM_NAME Android)
 

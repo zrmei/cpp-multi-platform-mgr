@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
-PROJECT(aicae-sdk)
+PROJECT(cpp-multi-platform-mgr)
 
 if (MSVC)
     MESSAGE(STATUS "link to static  C and C++ runtime libbary(/MT /MTd)")

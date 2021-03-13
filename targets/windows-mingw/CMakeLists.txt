@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
-PROJECT(aicae-sdk)
+PROJECT(cpp-multi-platform-mgr)
 
 set(COMMON_FLAG " -w -mconsole -U__STRICT_ANSI__ -fpermissive -static -ffunction-sections -fdata-sections -fvisibility=hidden " CACHE INTERNAL "COMMON_FLAG")
 

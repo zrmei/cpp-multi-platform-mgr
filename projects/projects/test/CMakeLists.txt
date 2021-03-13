@@ -5,3 +5,7 @@ CMAKE_POLICY(SET CMP0048 NEW)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_executable(main_demo main.cpp)
+
+if (CMAKE_SYSTEM_NAME MATCHES "Android")
+    target_link_libraries(main_demo dl)
+endif ()

@@ -8,8 +8,6 @@ if(NOT DEFINED PLATFORM)
     SET(PLATFORM ${ANDROID_ABI})
 endif()
 
-SET(AIUI_LIBRARY_TYPE DEFAULT)
-
 ADD_SUBDIRECTORY(../../projects projects)
 
 

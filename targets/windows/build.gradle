@@ -3,8 +3,10 @@ apply plugin: "net.freudasoft.gradle-cmake-plugin"
 cmake {
     Properties localProperties = getCombinedProperties(["local", "win"])
 
-    def cmakeDir = localProperties.getProperty("cmake.dir", "C:/Program Files/CMake")
-    executable = "$cmakeDir/bin/cmake"
+    def postfix = isWindows() ? ".exe" : ""
+
+    def cmakeDir = localProperties.getProperty("cmake.dir", "${rootProject.projectDir}/tools/cmake")
+    executable = "$cmakeDir/bin/cmake${postfix}"
 
     println("use cmake executable: $cmakeDir/bin/cmake")
 

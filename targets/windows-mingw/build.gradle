@@ -19,12 +19,10 @@ cmake {
         options.CMAKE_MAKE_PROGRAM = isWindows() ? "${mingwDir}/bin/mingw32-make${postfix}": "make"
     }
 
-    if (localProperties.containsKey("cmake.dir")) {
-        def cmakeDir = localProperties.getProperty("cmake.dir")
-        executable = "$cmakeDir/bin/cmake${postfix}"
-    } else {
-        executable = "cmake"
-    }
+    def cmakeDir = localProperties.getProperty("cmake.dir", "${rootProject.projectDir}/tools/cmake")
+    executable = "$cmakeDir/bin/cmake${postfix}"
+
+    println("use cmake executable: $cmakeDir/bin/cmake")
 
     sourceFolder = projectDir
 

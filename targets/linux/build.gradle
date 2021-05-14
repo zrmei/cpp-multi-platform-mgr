@@ -21,7 +21,7 @@ cmake {
         options.CUSTOM_PLATFORM = localProperties.getProperty("toolchain.platform", "unknown")
     }
 
-    def cmakeDir = localProperties.getProperty("cmake.dir", "/usr")
+    def cmakeDir = localProperties.getProperty("cmake.dir", "${rootProject.projectDir}/tools/cmake")
     executable = "${cmakeDir}/bin/cmake"
 
     println("use cmake executable: $cmakeDir/bin/cmake")

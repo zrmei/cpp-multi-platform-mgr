@@ -3,7 +3,7 @@ apply plugin: "net.freudasoft.gradle-cmake-plugin"
 cmake {
     Properties localProperties = getCombinedProperties(["local", "android"])
 
-    def cmakeDir = localProperties.getProperty("cmake.dir", "/usr")
+    def cmakeDir = localProperties.getProperty("cmake.dir", "${rootProject.projectDir}/tools/cmake")
     executable = "$cmakeDir/bin/cmake"
     println("use cmake executable: $cmakeDir/bin/cmake")
 

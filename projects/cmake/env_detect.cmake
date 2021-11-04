@@ -110,10 +110,6 @@ function(CheckForWindowsPlatform)
     IF (MSVC)
         SET(COMMON_FLAG "-w /utf-8 /nologo /Gm- /O2 /Ob2 /errorReport:prompt /WX- /Zc:wchar_t /Zc:inline /Zc:forScope /GR /Gd /Oy- /MT /EHsc /MP")
 
-        if (NOT AIUI_DEBUG)
-            set(COMMON_FLAG "${COMMON_FLAG} /Os")
-        endif (NOT AIUI_DEBUG)
-
         CHECK_CXX_COMPILER_FLAG("/std:c++latest" COMPILER_SUPPORTS_CXXLATEST)
         CHECK_CXX_COMPILER_FLAG("/std:c++11" COMPILER_SUPPORTS_CXX11)
         if (COMPILER_SUPPORTS_CXX11)
@@ -138,8 +134,8 @@ function(CheckForWindowsPlatform)
 
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMMON_FLAG}" PARENT_SCOPE)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_FLAG}" PARENT_SCOPE)
-    SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s" PARENT_SCOPE)
-    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s" PARENT_SCOPE)
+    SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /Os" PARENT_SCOPE)
+    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Os" PARENT_SCOPE)
 endfunction()
 
 
@@ -165,10 +161,6 @@ function(CheckForAndroidPlatform)
     else ()
         message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
     endif ()
-
-    CHECK_PTHREAD_SETNAME()
-
-    add_definitions(-DPOCO_STATIC -DPOCO_NO_AUTOMATIC_LIBS -DPOCO_NO_SHAREDMEMORY -DPOCO_OS_FAMILY_UNIX -DPOCO_ANDROID)
 
     set(COMMON_FLAG "${COMMON_FLAG} -Wl,--unresolved-symbols=ignore-in-shared-libs")
 

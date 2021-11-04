@@ -23,7 +23,6 @@ cmake {
     }
 
     buildConfig = options.CMAKE_BUILD_TYPE
-    buildClean = true
 }
 
 String defineVariantTask(String name, String platform_, String generator_) {
@@ -43,8 +42,18 @@ String defineVariantTask(String name, String platform_, String generator_) {
 
         configureFromProject()
 
+        buildClean = true
+
         workingFolder = file("$buildDir/cmake-${name}-${platform_}")
     }
+
+    tasks.register("build-${name}-${platform_}-only", net.freudasoft.CMakeBuildTask) {
+        group = "windows"
+
+        configureFromProject()
+
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
+     }
 
     tasks.getByName("build-${name}-${platform_}").dependsOn(tasks.getByName("configure-${name}-${platform_}"))
 

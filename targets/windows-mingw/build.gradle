@@ -41,7 +41,6 @@ cmake {
     }
 
     buildConfig = options.CMAKE_BUILD_TYPE
-    buildClean = true
     jobCount = "auto"
 }
 
@@ -56,6 +55,16 @@ String defineVariantTask(String name, String platform_) {
     }
 
     tasks.register("build-${name}-${platform_}", net.freudasoft.CMakeBuildTask) {
+        group = "$name"
+
+        configureFromProject()
+
+        buildClean = true
+
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
+    }
+
+    tasks.register("build-${name}-${platform_}-only", net.freudasoft.CMakeBuildTask) {
         group = "$name"
 
         configureFromProject()

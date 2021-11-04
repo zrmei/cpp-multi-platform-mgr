@@ -2,7 +2,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.13)
 
 PROJECT(cpp-multi-platform-mgr)
 
-set(COMMON_FLAG " -w -mconsole -U__STRICT_ANSI__ -fpermissive -static -ffunction-sections -fdata-sections -fvisibility=hidden " CACHE INTERNAL "COMMON_FLAG")
+OPTION(GENERATE_LIB_OR_BIN "生成动态库或可执行文件，ON为LIB" ON)
+
+set(COMMON_FLAG " -w -Os -mconsole -U__STRICT_ANSI__ -fpermissive -static -ffunction-sections -fdata-sections -fvisibility=hidden -s" CACHE INTERNAL "COMMON_FLAG")
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-Wl,--gc-sections" COMPILER_SUPPORTS_GC_SECTIONS)
@@ -26,10 +28,7 @@ if (COMPILER_SUPPORTS_MSSE41)
 endif ()
 
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
-if (COMPILER_SUPPORTS_CXX14)
-    set(COMMON_FLAG "${COMMON_FLAG} -std=c++14")
-elseif (COMPILER_SUPPORTS_CXX11)
+if (COMPILER_SUPPORTS_CXX11)
     set(COMMON_FLAG "${COMMON_FLAG} -std=c++11")
 else ()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
@@ -46,9 +45,9 @@ if (CHECK_ENABLE_STDCALL_FIXUP)
     add_link_options(-Wl,--enable-stdcall-fixup,--add-stdcall-alias)
 endif (CHECK_ENABLE_STDCALL_FIXUP)
 
-check_linker_flag(CXX "-Wl,--output-def,aicae_${CMAKE_BUILD_TYPE}.def" CHECK_OUTPUT_DEF)
+check_linker_flag(CXX "-Wl,--output-def,aiui_${CMAKE_BUILD_TYPE}.def" CHECK_OUTPUT_DEF)
 if (CHECK_OUTPUT_DEF)
-    add_link_options(-Wl,--output-def,aicae_${CMAKE_BUILD_TYPE}.def)
+    add_link_options(-Wl,--output-def,aiui_${CMAKE_BUILD_TYPE}.def)
 endif (CHECK_OUTPUT_DEF)
 
 ADD_SUBDIRECTORY(../../projects projects)

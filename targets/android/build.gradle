@@ -3,30 +3,34 @@ apply plugin: "net.freudasoft.gradle-cmake-plugin"
 cmake {
     Properties localProperties = getCombinedProperties(["local", "android"])
 
+    def cmake_exe_subfix = isWindows() ? ".exe" : "";
+
     def cmakeDir = localProperties.getProperty("cmake.dir", "${rootProject.projectDir}/tools/cmake")
-    executable = "$cmakeDir/bin/cmake"
-    println("use cmake executable: $cmakeDir/bin/cmake")
+    executable = "$cmakeDir/bin/cmake${cmake_exe_subfix}"
+    println("use cmake executable: $cmakeDir/bin/cmake${cmake_exe_subfix}")
 
     def ndkDir = localProperties.getProperty("ndk.dir", "")
 
-    if(!ndkDir.isEmpty()) {
-        println("ndk dir: ${ndkDir}")
-        sourceFolder = projectDir
-
-        def ndkApiLevel = localProperties.getProperty("ndk.api.level", "21")
-        def ndkToolchain = localProperties.getProperty("ndk.toolchain", "clang")
-        def ndkstl = localProperties.getProperty("ndk.stl", "gnustl_static")
-
-        options.CMAKE_BUILD_TYPE = "MinSizeRel"
-        options.CMAKE_SYSTEM_NAME = "Android"
-        options.CMAKE_SYSROOT= "${ndkDir}/platforms/android-${ndkApiLevel}/arch-arm"
-        options.CMAKE_TOOLCHAIN_FILE="${ndkDir}/build/cmake/android.toolchain.cmake"
-        options.ANDROID_NDK="${ndkDir}"
-        options.ANDROID_TOOLCHAIN = "${ndkToolchain}"
-        options.ANDROID_NATIVE_API_LEVEL = "${ndkApiLevel}"
-        options.ANDROID_FORCE_ARM_BUILD = "OFF"
-        options.ANDROID_STL = "${ndkstl}"
+    if(ndkDir.isEmpty()) {
+        println "Please setup ndk.dir for Android build..."
+        return
     }
+
+    sourceFolder = projectDir
+
+    def ndkApiLevel = localProperties.getProperty("ndk.api.level", "19")
+    def ndkToolchain = localProperties.getProperty("ndk.toolchain", "gcc")
+    def ndkstl = localProperties.getProperty("ndk.stl", "gnustl_static")
+
+    options.CMAKE_BUILD_TYPE = "MinSizeRel"
+    options.CMAKE_SYSTEM_NAME = "Android"
+    options.CMAKE_SYSROOT= "${ndkDir}/platforms/android-${ndkApiLevel}/arch-arm"
+    options.CMAKE_TOOLCHAIN_FILE="${ndkDir}/build/cmake/android.toolchain.cmake"
+    options.ANDROID_NDK="${ndkDir}"
+    options.ANDROID_TOOLCHAIN = "${ndkToolchain}"
+    options.ANDROID_NATIVE_API_LEVEL = "${ndkApiLevel}"
+    options.ANDROID_FORCE_ARM_BUILD = "OFF"
+    options.ANDROID_STL = "${ndkstl}"
 
     for (Enumeration en = localProperties.propertyNames(); en.hasMoreElements();) {
         String key = en.nextElement();
@@ -36,7 +40,6 @@ cmake {
     }
 
     buildConfig = options.CMAKE_BUILD_TYPE
-    buildClean = true
     jobCount = "auto"
 }
 
@@ -46,11 +49,12 @@ String defineVariantTask(String name, String platform_) {
 
        configureFromProject()
 
-       if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+       if (isWindows()) {
            options.CMAKE_MAKE_PROGRAM = "${rootProject.projectDir}/tools/ninja/ninja.exe"
        } else {
            options.CMAKE_MAKE_PROGRAM = "${rootProject.projectDir}/tools/ninja/ninja"
        }
+
        generator = "Ninja"
 
        options.ANDROID_ABI = platform_
@@ -64,8 +68,18 @@ String defineVariantTask(String name, String platform_) {
 
         configureFromProject()
 
+        buildClean = true
+
         workingFolder = file("$buildDir/cmake-${name}-${platform_}")
     }
+
+    tasks.register("build-${name}-${platform_}-only", net.freudasoft.CMakeBuildTask) {
+        group = "$name"
+
+        configureFromProject()
+
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
+     }
 
     tasks.getByName("build-${name}-${platform_}").dependsOn(tasks.getByName("configure-${name}-${platform_}"))
 
@@ -94,4 +108,20 @@ tasks.register("build-android-all-extras") {
     description = "build all task defined in this group."
 
     dependsOn build_targets_extras
+}
+
+if (!isWindows()) {
+    exec {
+         ExecSpec execSpec ->
+         executable  "chmod"
+         args "+x", "${rootProject.projectDir}/tools/ninja/ninja"
+         ignoreExitValue true
+    }
+
+    exec {
+         ExecSpec execSpec ->
+         executable  "chmod"
+         args "+x", "${rootProject.projectDir}/tools/cmake/bin/cmake"
+         ignoreExitValue true
+    }
 }

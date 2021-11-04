@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        jcenter()
         maven {url 'file:gradle/repositories/gradle-cmake-plugin/'}
     }
     dependencies {
@@ -10,7 +9,6 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
     }
 }
 
@@ -28,6 +26,10 @@ Properties getCombinedProperties(List<String> names)
         systemDir = project.propertiesDir
     }
 
+    if (project.hasProperty("prop.file")) {
+        names.add(project["prop.file"])
+    }
+
     for (String s : names) {
         def cfg_file = new File(project.rootDir, s + ".properties");
 
@@ -35,7 +37,11 @@ Properties getCombinedProperties(List<String> names)
             cfg_file = new File(systemDir, s + ".properties");
 
             if(!cfg_file.exists()) {
-                continue
+                cfg_file = new File(s);
+
+                if(!cfg_file.exists()) {
+                    continue
+                }
             }
         }
        
@@ -43,6 +49,12 @@ Properties getCombinedProperties(List<String> names)
 
         for(String key : p.stringPropertyNames()) {
             localProperties.setProperty(key, p.getProperty(key, ""))
+        }
+    }
+
+    for (property in project.getProperties()) {
+        if(property.key.startsWith("def.")) {
+            localProperties.setProperty(property.key, property.value)
         }
     }
 

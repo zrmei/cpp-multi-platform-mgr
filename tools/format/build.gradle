@@ -1,41 +1,37 @@
-def isWindows() {
-    return org.gradle.internal.os.OperatingSystem.current().isWindows()
+if (!isWindows()) {
+    exec {
+         ExecSpec execSpec ->
+         executable  "chmod"
+         args "+x", "${project.projectDir}/bin/clang-format"
+         ignoreExitValue true
+    }
 }
 
 tasks.register("format-code") {
     group = "format"
     description = "auto format codes under src"
 
-    Properties localProperties = getCombinedProperties(["local", "format"])
+    doLast {
+        Properties localProperties = getCombinedProperties(["local", "format"])
 
-    def project_dirname = localProperties.getProperty("def.PROJECT_DIRNAME", ".")
+        def project_dirname = localProperties.getProperty("def.PROJECT_DIRNAME", "${rootProject.projectDir}")
 
-    doLast {       
-        if (isWindows()) {
-            try {
-                exec {
-                    ExecSpec execSpec ->
-                        executable 'cmd.exe'
-                        args "/c", ".\\format.bat", project_dirname
-                }
+        FileTree tree = fileTree(dir: project_dirname + "/projects")
 
-                println "format all success"
-            } catch (Exception e) {
-                println "Please call zrmei"
-            }
-        } else {
-            try {
-                exec {
-                    ExecSpec execSpec ->
-                        executable 'bash'
-                        args "./format.sh", project_dirname
-                }
+        tree = tree.matching {
+            include '**/*.h', '**/*.cpp'
+        }
 
-                println "format all success"
-            } catch (Exception e) {
-                println "Please call zrmei"
-            }
-         }
+        tree.each {File file ->
+            println file.getAbsolutePath()
 
+             exec {
+                ExecSpec execSpec ->
+                    executable  isWindows() ? "${project.projectDir}\\clang-format.exe" : "${project.projectDir}/bin/clang-format"
+                    args "-style=file", "-i", file.getAbsolutePath()
+                    ignoreExitValue true
+                    workingDir rootProject.projectDir
+             }
+        }
     }
 }

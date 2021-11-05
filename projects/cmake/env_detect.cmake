@@ -81,8 +81,10 @@ function(CheckForLinuxPlatform)
     SET(AIUI_LIBRARY_TYPE ${PLATFORM} PARENT_SCOPE)
 
     set(COMMON_FLAG "${COMMON_FLAG} -Wl,--exclude-libs,ALL")
-    set(COMMON_FLAG "${COMMON_FLAG} -Wl,--unresolved-symbols=ignore-in-shared-libs")
-
+    #set(COMMON_FLAG "${COMMON_FLAG} -Wl,--unresolved-symbols=ignore-in-shared-libs")
+    set(COMMON_FLAG "${COMMON_FLAG} -Wl,--warn-unresolved-symbols")
+    set(COMMON_FLAG "${COMMON_FLAG} -Wl,-no-wchar-size-warning")
+    
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMMON_FLAG}" PARENT_SCOPE)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_FLAG}" PARENT_SCOPE)
 
@@ -162,7 +164,10 @@ function(CheckForAndroidPlatform)
         message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
     endif ()
 
-    set(COMMON_FLAG "${COMMON_FLAG} -Wl,--unresolved-symbols=ignore-in-shared-libs")
+    set(COMMON_FLAG "${COMMON_FLAG} -Wl,--exclude-libs,ALL")
+    #set(COMMON_FLAG "${COMMON_FLAG} -Wl,--unresolved-symbols=ignore-in-shared-libs")
+    set(COMMON_FLAG "${COMMON_FLAG} -Wl,--warn-unresolved-symbols")
+    set(COMMON_FLAG "${COMMON_FLAG} -Wl,-no-wchar-size-warning")
 
     SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COMMON_FLAG}" PARENT_SCOPE)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_FLAG}" PARENT_SCOPE)

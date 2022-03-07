@@ -1,3 +1,6 @@
+import java.util.regex.*;
+import java.util.zip.*;
+
 apply plugin: "net.freudasoft.gradle-cmake-plugin"
 
 cmake {
@@ -8,12 +11,10 @@ cmake {
     def cmakeDir = localProperties.getProperty("cmake.dir", "${rootProject.projectDir}/tools/cmake")
     executable = "$cmakeDir/bin/cmake${postfix}"
 
-    println("use cmake executable: $cmakeDir/bin/cmake")
-
     sourceFolder = projectDir
 
     options.CMAKE_SYSTEM_NAME = "Windows"
-    options.CMAKE_BUILD_TYPE = "Release"
+    options.CMAKE_BUILD_TYPE = "MinSizeRel"
 
     for (Enumeration en = localProperties.propertyNames(); en.hasMoreElements();) {
         String key = en.nextElement();
@@ -47,17 +48,47 @@ String defineVariantTask(String name, String platform_, String generator_) {
         workingFolder = file("$buildDir/cmake-${name}-${platform_}")
     }
 
-    tasks.register("build-${name}-${platform_}-only", net.freudasoft.CMakeBuildTask) {
+    tasks.getByName("build-${name}-${platform_}").dependsOn("configure-${name}-${platform_}")
+
+    return "build-${name}-${platform_}";
+}
+
+String defineVariantTask2(String name, String platform_, String generator_, String prop_name, String prop_path) {
+
+    Properties localProperties = getCombinedProperties([prop_path])
+
+    tasks.register("configure-${name}-${platform_}-${prop_name}", net.freudasoft.CMakeConfigureTask) {
         group = "windows"
 
         configureFromProject()
 
-        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
-     }
+        for (Enumeration en = localProperties.propertyNames(); en.hasMoreElements();) {
+            String key = en.nextElement();
+            if(key.startsWith("def.")) {
+                options[key.substring(4)] = localProperties.getProperty(key);
+            }
+        }
 
-    tasks.getByName("build-${name}-${platform_}").dependsOn(tasks.getByName("configure-${name}-${platform_}"))
+        generator = generator_
+        options.PLATFORM = platform_
+        options.FRIEND_NAME = prop_name
 
-    return "build-${name}-${platform_}";
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}-${prop_name}")
+    }
+
+    tasks.register("build-${name}-${platform_}-${prop_name}", net.freudasoft.CMakeBuildTask) {
+        group = "windows"
+
+        configureFromProject()
+
+        buildClean = true
+
+        workingFolder = file("$buildDir/cmake-${name}-${platform_}-${prop_name}")
+    }
+
+    tasks.getByName("build-${name}-${platform_}-${prop_name}").dependsOn("configure-${name}-${platform_}-${prop_name}")
+
+    return "build-${name}-${platform_}-${prop_name}";
 }
 
 def build_targets_14 = [
@@ -65,9 +96,74 @@ def build_targets_14 = [
     defineVariantTask("msvc-14", "x64", "Visual Studio 14 2015 Win64")
 ]
 
+fileTree(dir: "${project.projectDir}/properties", include: '**/*.properties').each {File file ->
+
+    def prop_name = basename(file.getAbsolutePath())
+
+    def build_all_targets = [
+        defineVariantTask2("msvc-14", "x86", "Visual Studio 14 2015", prop_name, file.getAbsolutePath()),
+        defineVariantTask2("msvc-14", "x64", "Visual Studio 14 2015 Win64", prop_name, file.getAbsolutePath())
+    ]
+
+    tasks.register("build-14-all-${prop_name}") {
+        group = "windows"
+        description = "build all task defined in this group."
+
+        dependsOn build_all_targets
+    }
+}
+
 tasks.register("build-14-all") {
     group = "windows"
     description = "build all task defined in this group."
 
     dependsOn build_targets_14
+}
+
+tasks.register("pack-windows-release") {
+    group = "windows"
+
+    doLast {
+        def rootDir = rootProject.projectDir
+        def version = ""
+
+        copy {
+            def distDir = new File("${projectDir}/Windows_aiui_soft/include/aiui");
+            distDir.mkdirs()
+
+            from "${rootDir}/src/include/aiui"
+            into distDir
+        }
+
+        copy {
+            def sourceDir = new File("${rootDir}/output/Windows/x64_140/MinSizeRel/aiui.dll")
+            def distDir = new File("${projectDir}/Windows_aiui_soft/libs/x64")
+            distDir.mkdirs()
+
+            from sourceDir, "${rootDir}/output/Windows/x64_140/MinSizeRel/aiui.lib"
+            into distDir
+
+            def pattern = "(5\\.6\\.\\d+\\.\\d+)"
+            def r = Pattern.compile(pattern)
+            def m = r.matcher(sourceDir.text)
+
+            version = m.find() ? m.group(0) : ""
+        }
+
+        copy {
+            def distDir = new File("${projectDir}/Windows_aiui_soft/libs/x86");
+            distDir.mkdirs()
+
+            from "${rootDir}/output/Windows/x86_140/MinSizeRel/aiui.dll",  "${rootDir}/output/Windows/x86_140/MinSizeRel/aiui.lib"
+            into distDir
+        }
+
+        zipFile("${projectDir}/Windows_aiui_soft", "${projectDir}/Windows_aiui_soft_${version}.zip")
+    }
+}
+
+tasks.register("build-and-pack-windows-release") {
+    group = "windows"
+
+    dependsOn "build-14-all", "pack-windows-release"
 }

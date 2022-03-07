@@ -1,3 +1,5 @@
+import java.util.regex.*;
+
 apply plugin: "net.freudasoft.gradle-cmake-plugin"
 
 cmake {
@@ -18,12 +20,14 @@ String defineVariantTask(String name, String platform_, String prop_path) {
         if (localProperties.containsKey("toolchain.path")) {
             options.CMAKE_TOOLCHAIN_FILE = localProperties.getProperty("toolchain.path", "")
         } else if (localProperties.containsKey("gcc.dir")) {
-            def gccDir = localProperties.getProperty("gcc.dir", "/usr")
+            def gccDir = localProperties.getProperty("gcc.dir", "")
             def gccPrefix = localProperties.getProperty("gcc.prefix", "")
             def gccSuffix = localProperties.getProperty("gcc.suffix", "")
 
-            options.CMAKE_C_COMPILER = "${gccDir}/bin/${gccPrefix}gcc${gccSuffix}"
-            options.CMAKE_CXX_COMPILER = "${gccDir}/bin/${gccPrefix}g++${gccSuffix}"
+            if (!gccDir.isEmpty() && !gccDir.endsWith("/")) gccDir = "${gccDir}/";
+
+            options.CMAKE_C_COMPILER = "${gccDir}${gccPrefix}gcc${gccSuffix}"
+            options.CMAKE_CXX_COMPILER = "${gccDir}${gccPrefix}g++${gccSuffix}"
         }
 
         options.PLATFORM = localProperties.getProperty("toolchain.platform", "")
@@ -45,8 +49,12 @@ String defineVariantTask(String name, String platform_, String prop_path) {
             }
         }
 
-        if(options.getAt("PLATFORM").getOrElse("") == "") {
+        if (options.getAt("PLATFORM").getOrElse("") == "") {
             options.PLATFORM = platform_
+        }
+
+        if (platform_ != "x64" && platform_ != "x86") {
+            options.FRIEND_NAME = platform_
         }
 
         workingFolder = file("$buildDir/cmake-${name}-${platform_}")
@@ -62,22 +70,6 @@ String defineVariantTask(String name, String platform_, String prop_path) {
         if (localProperties.containsKey("wsl.distribution")) {
             distribution = localProperties.getProperty("wsl.distribution", "Ubuntu-16.04")
         }
-
-        workingFolder = file("$buildDir/cmake-${name}-${platform_}")
-    }
-
-    tasks.register("build-${name}-${platform_}-only", net.freudasoft.CMakeBuildTask) {
-        group = "$name"
-
-        configureFromProject()
-
-        buildConfig = localProperties.getProperty("def.CMAKE_BUILD_TYPE", "MinSizeRel");
-
-        if (localProperties.containsKey("wsl.distribution")) {
-            distribution = localProperties.getProperty("wsl.distribution", "Ubuntu-16.04")
-        }
-
-        buildClean = false
 
         workingFolder = file("$buildDir/cmake-${name}-${platform_}")
     }
@@ -99,19 +91,7 @@ String defineVariantTask(String name, String platform_, String prop_path) {
     return "build-${name}-${platform_}"
 }
 
-String basename(String filename) {
-    int p = filename.lastIndexOf('/');
-    if (p >= 0) {
-        filename = filename.substring(p + 1);
-    }
-    p = filename.lastIndexOf('.');
-    if (p >= 0) {
-        filename = filename.substring(0, p);
-    }
-    return filename;
-}
-
-fileTree("${project.projectDir}/properties").include('**/*.properties').each {File file ->
+fileTree(dir: "${project.projectDir}/properties", include: '**/*.properties').each {File file ->
     defineVariantTask("linux", basename(file.getName()), file.getAbsolutePath())
 }
 
@@ -119,8 +99,6 @@ def build_targets = [
     defineVariantTask("linux", "x86", "x86"),
     defineVariantTask("linux", "x64", "x64")
 ]
-
-defineVariantTask("linux", "custom", "custom")
 
 tasks.register("build-linux-all") {
     group = "linux"
@@ -131,16 +109,70 @@ tasks.register("build-linux-all") {
 
 if (!isWindows()) {
     exec {
-         ExecSpec execSpec ->
-         executable  "chmod"
-         args "+x", "${rootProject.projectDir}/tools/ninja/ninja"
-         ignoreExitValue true
+        executable  "chmod"
+        args "+x", "${rootProject.projectDir}/tools/ninja/ninja"
+        ignoreExitValue true
     }
 
     exec {
-         ExecSpec execSpec ->
-         executable  "chmod"
-         args "+x", "${rootProject.projectDir}/tools/cmake/bin/cmake"
-         ignoreExitValue true
+        executable  "chmod"
+        args "+x", "${rootProject.projectDir}/tools/cmake/bin/cmake"
+        ignoreExitValue true
     }
+}
+
+tasks.register("pack-linux-release") {
+    group = "linux"
+
+    doLast {
+        def rootDir = rootProject.projectDir
+        def version = ""
+
+        copy {
+            def distDir = new File("${projectDir}/Linux_aiui_soft/include/aiui");
+            distDir.mkdirs()
+
+            from "${rootDir}/src/include/aiui"
+            into distDir
+        }
+
+        copy {
+            def sourceDir = new File("${rootDir}/output/Linux/x64_GNU_5.4.0/MinSizeRel/libaiui.so")
+            def distDir = new File("${projectDir}/Linux_aiui_soft/libs/x64")
+            distDir.mkdirs()
+
+            from sourceDir
+            into distDir
+
+            def pattern = "(5\\.6\\.\\d+\\.\\d+)"
+            def r = Pattern.compile(pattern)
+            def m = r.matcher(sourceDir.text)
+
+            version = m.find() ? m.group(0) : ""
+        }
+
+        copy {
+            def distDir = new File("${projectDir}/Linux_aiui_soft/libs/x86");
+            distDir.mkdirs()
+
+            from "${rootDir}/output/Linux/x86_GNU_5.4.0/MinSizeRel/libaiui.so"
+            into distDir
+        }
+
+        exec {
+            workingDir "Linux_aiui_soft/samples/"
+            executable  isWindows() ? "${rootDir}/tools/dos2unix-7.4.2-win64/dos2unix.exe": "dos2unix"
+            args "64bit_make.sh", "32bit_make.sh"
+            ignoreExitValue true
+        }
+
+        zipFile("${projectDir}/Linux_aiui_soft", "${projectDir}/Linux_aiui_soft_${version}.zip")
+    }
+}
+
+
+tasks.register("build-and-pack-linux-release") {
+    group = "linux"
+
+    dependsOn "build-linux-all", "pack-linux-release"
 }

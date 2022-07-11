@@ -1,3 +1,5 @@
+import java.util.zip.*;
+
 buildscript {
     repositories {
         maven {url 'file:gradle/repositories/gradle-cmake-plugin/'}
@@ -13,7 +15,7 @@ allprojects {
 }
 
 boolean isWindows() {
-    return org.gradle.internal.os.OperatingSystem.current().isWindows()
+    return System.getProperty("os.name").toLowerCase().contains("windows")
 }
 
 Properties getCombinedProperties(List<String> names)
@@ -44,7 +46,7 @@ Properties getCombinedProperties(List<String> names)
                 }
             }
         }
-       
+
         p.load(new FileInputStream(cfg_file))
 
         for(String key : p.stringPropertyNames()) {
@@ -59,4 +61,59 @@ Properties getCombinedProperties(List<String> names)
     }
 
     return localProperties
+}
+
+String basename(String filename) {
+    int p = filename.lastIndexOf( isWindows() ? '\\': '/');
+    if (p >= 0) {
+        filename = filename.substring(p + 1);
+    }
+    p = filename.lastIndexOf('.');
+    if (p >= 0) {
+        filename = filename.substring(0, p);
+    }
+    return filename;
+}
+
+void _zipFile(File file, String relativePath, ZipOutputStream zos) {
+
+    def fix_path = relativePath.replaceAll("\\\\", "/")
+    println fix_path
+
+    if (!file.isDirectory()) {
+        ZipEntry zp = new ZipEntry(fix_path)
+        zos.putNextEntry(zp);
+
+        def is = new FileInputStream(file);
+        byte[] buffer = new byte[1024];
+        int length = 0;
+        while ((length = is.read(buffer)) >= 0) {
+            zos.write(buffer, 0, length)
+        }
+
+        is = null
+        file = null
+        return
+    }
+
+    fileTree(dir: "${file}").each {File f ->
+        _zipFile(f, f.getAbsolutePath().substring(relativePath.length() + 1), zos)
+    }
+}
+
+void zipFile(String filePath, String fileName) {
+    def file1 = new File(fileName)
+
+    if (!file1.exists()) {
+        file1.createNewFile()
+    }
+
+    def zos = new ZipOutputStream(new FileOutputStream(file1))
+    File file = new File(filePath)
+
+    _zipFile(file, filePath, zos)
+
+    zos.close()
+    zos = null
+    file1 = null
 }

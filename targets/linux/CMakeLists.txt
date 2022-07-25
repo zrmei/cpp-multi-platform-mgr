@@ -4,6 +4,23 @@ PROJECT(cpp-multi-platform-mgr)
 
 OPTION(GENERATE_LIB_OR_BIN "生成动态库或可执行文件，ON为LIB" ON)
 
+if (CMAKE_COMPILER_IS_GNUCXX)
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpfullversion -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+    string(REGEX MATCHALL "[0-9]+" GCC_VERSION_COMPONENTS ${GCC_VERSION})
+    list(GET GCC_VERSION_COMPONENTS 0 GCC_MAJOR)
+    list(GET GCC_VERSION_COMPONENTS 1 GCC_MINOR)
+    list(GET GCC_VERSION_COMPONENTS 2 GCC_PATCH)
+
+    message(STATUS "cmake version = ${CMAKE_VERSION}")
+
+    set(GCC_VERSION "${GCC_MAJOR}.${GCC_MINOR}.${GCC_PATCH}")
+    message(STATUS "gcc version = ${GCC_VERSION}")
+
+    if (GCC_VERSION LESS "4.8")
+        MESSAGE(FATAL_ERROR "not support ${GCC_VERSION}, should greater then 4.8.1")
+    endif ()
+endif ()
+
 if(DEFINED CUSTOM_PLATFORM AND NOT DEFINED PLATFORM)
     set(PLATFORM "${CUSTOM_PLATFORM}")
 endif(DEFINED CUSTOM_PLATFORM AND NOT DEFINED PLATFORM)

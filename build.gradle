@@ -47,11 +47,14 @@ Properties getCombinedProperties(List<String> names)
             }
         }
 
-        p.load(new FileInputStream(cfg_file))
+        def fs = new FileInputStream(cfg_file)
+        p.load(fs)
 
         for(String key : p.stringPropertyNames()) {
             localProperties.setProperty(key, p.getProperty(key, ""))
         }
+
+        fs.close()
     }
 
     for (property in project.getProperties()) {
@@ -91,6 +94,7 @@ void _zipFile(File file, String relativePath, ZipOutputStream zos) {
             zos.write(buffer, 0, length)
         }
 
+        is.close()
         is = null
         file = null
         return
@@ -108,12 +112,14 @@ void zipFile(String filePath, String fileName) {
         file1.createNewFile()
     }
 
-    def zos = new ZipOutputStream(new FileOutputStream(file1))
+    def fs = new FileOutputStream(file1);
+    def zos = new ZipOutputStream()
     File file = new File(filePath)
 
     _zipFile(file, filePath, zos)
 
     zos.close()
+    fs.close()
     zos = null
     file1 = null
 }

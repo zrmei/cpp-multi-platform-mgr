@@ -11,7 +11,7 @@ SET(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/libs")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
 # 引入自定义的函数文件
-include(cmake/env_detect.cmake)
+include(cmake-modules/env_detect.cmake)
 
 ########################################################################################################################
 # 设置输出路径
